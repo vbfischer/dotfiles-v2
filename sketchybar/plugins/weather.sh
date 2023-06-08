@@ -2,7 +2,6 @@
 
 # WEATHER=$(curl -s 'wttr.in/Saco?format="%c+%C+%t"' | tr -d '"')
 location="43.566,-70.472"
-apiKey="175bcc04af30430a931132046230303"
 
 # first comment is description, second is icon number
 weather_icons_day=(
@@ -108,7 +107,6 @@ weather_icons_night=(
 )
 
 data=$(http -p=b GET "http://api.weatherapi.com/v1/current.json?key=$apiKey&q=$location")
-
 condition=$(echo $data | jq -r '.current.condition.code')
 temp=$(echo $data | jq -r '.current.temp_f')
 feelslike=$(echo $data | jq -r '.current.feelslike_f')
