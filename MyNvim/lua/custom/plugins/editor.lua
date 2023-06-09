@@ -105,6 +105,8 @@ return {
         ["<leader>u"] = { name = "+ui" },
         ["<leader>w"] = { name = "+windows" },
         ["<leader>x"] = { name = "+diagnostics/quickfix" },
+        ["<leader>d"] = { name = "+debug" },
+        ["<leader>da"] = { name = "+adapters" },
       },
     },
     config = function(_, opts)
