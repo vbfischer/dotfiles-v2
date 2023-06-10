@@ -54,14 +54,6 @@ return {
         },
       },
     },
-
-    { "mxsdev/nvim-dap-vscode-js", module = { "dap-vscode-js" } },
-
-    {
-      "microsoft/vscode-js-debug",
-      opt = true,
-      run = "npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out",
-    },
   },
 
   -- stylua: ignore

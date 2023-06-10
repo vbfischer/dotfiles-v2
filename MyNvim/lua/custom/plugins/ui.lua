@@ -30,6 +30,8 @@ return {
       end
     end,
   },
+
+  -- lualine
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
@@ -42,11 +44,13 @@ return {
       }
     end,
   },
+
   -- icons
   { "nvim-tree/nvim-web-devicons", lazy = true },
 
   -- ui components
   { "MunifTanjim/nui.nvim", lazy = true },
+
   -- noicer ui
   {
     "folke/noice.nvim",
@@ -101,6 +105,7 @@ return {
       { "<c-b>", function() if not require("noice.lsp").scroll(-4) then return "<c-b>" end end, silent = true, expr = true, desc = "Scroll backward", mode = {"i", "n", "s"}},
     },
   },
+
   -- indent guides for Neovim
   {
     "lukas-reineke/indent-blankline.nvim",
@@ -226,5 +231,17 @@ return {
         },
       },
     },
+  },
+
+  -- barbecue
+  {
+    "utilyre/barbecue.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "neovim/nvim-lspconfig",
+      "SmiteshP/nvim-navic",
+      "nvim-tree/nvim-web-devicons",
+    },
+    config = true,
   },
 }

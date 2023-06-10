@@ -1,16 +1,21 @@
-local DEBUGGER_PATH = vim.fn.stdpath("data") .. "/site/pack/packer/opt/vscode-js-debug"
-
 return {
-  -- lspconfig
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {
+      defaults = {
+        ["<leader>l"] = { name = "+LSP" },
+      },
+    },
+  },
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       { "folke/neoconf.nvim", cmd = "Neoconf", config = true },
       { "folke/neodev.nvim", opts = {} },
-      { "williamboman/mason.nvim" },
-      { "williamboman/mason-lspconfig.nvim" },
-      { "jose-elias-alvarez/typescript.nvim" },
+      "mason.nvim",
+      "williamboman/mason-lspconfig.nvim",
       {
         "hrsh7th/cmp-nvim-lsp",
         cond = function()
@@ -18,6 +23,8 @@ return {
         end,
       },
     },
+
+    ---@class PluginLspOpts
     opts = {
       -- options for vim.diagnostic.config()
       diagnostics = {
@@ -50,28 +57,6 @@ return {
       -- LSP Server Settings
       ---@type lspconfig.options
       servers = {
-        tsserver = {
-          settings = {
-            typescript = {
-              format = {
-                indentSize = vim.o.shiftwidth,
-                convertTabsToSpaces = vim.o.expandtab,
-                tabSize = vim.o.tabstop,
-              },
-            },
-            javascript = {
-              format = {
-                indentSize = vim.o.shiftwidth,
-                convertTabsToSpaces = vim.o.expandtab,
-                tabSize = vim.o.tabstop,
-              },
-            },
-            completions = {
-              completeFunctionCalls = true,
-            },
-          },
-        },
-
         jsonls = {},
         lua_ls = {
           -- mason = false, -- set to false if you don't want this server to be installed with mason
@@ -87,27 +72,27 @@ return {
           },
         },
       },
+      -- you can do any additional lsp server setup here
+      -- return true if you don't want this server to be setup with lspconfig
+      ---@type table<string, fun(server:string, opts:_.lspconfig.options):boolean?>
       setup = {
-        tsserver = function(_, opts)
-          require("custom.util").on_attach(function(client, buffer)
-            if client.name == "tsserver" then
-              -- stylua: ignore
-              vim.keymap.set("n", "<leader>co", "<cmd>TypescriptOrganizeImports<CR>", { buffer = buffer, desc = "Organize Imports" })
-              -- stylua: ignore
-              vim.keymap.set("n", "<leader>cR", "<cmd>TypescriptRenameFile<CR>", { desc = "Rename File", buffer = buffer })
-            end
-          end)
-          require("typescript").setup({ server = opts })
-          return true
-        end,
+        -- example to setup with typescript.nvim
+        -- tsserver = function(_, opts)
+        --   require("typescript").setup({ server = opts })
+        --   return true
+        -- end,
+        -- Specify * to use this function as a fallback for any server
+        -- ["*"] = function(server, opts) end,
       },
     },
+    ---@param opts PluginLspOpts
     config = function(_, opts)
       local Util = require("custom.util")
-      require("custom.plugins.lsp.format").setup(opts)
+      -- setup autoformat
+      require("custom.base.lsp.format").setup(opts)
       -- setup formatting and keymaps
       Util.on_attach(function(client, buffer)
-        require("custom.plugins.lsp.keymaps").on_attach(client, buffer)
+        require("custom.base.lsp.keymaps").on_attach(client, buffer)
       end)
 
       -- diagnostics
@@ -190,16 +175,27 @@ return {
     end,
   },
   {
+    "jose-elias-alvarez/null-ls.nvim",
+    event = "BufReadPre",
+    dependencies = { "mason.nvim" },
+    opts = function()
+      local nls = require("null-ls")
+      return {
+        root_dir = require("null-ls.utils").root_pattern(".null-ls-root", ".neoconf.json", "Makefile", ".git"),
+        sources = {
+          nls.builtins.formatting.stylua,
+          nls.builtins.formatting.shfmt,
+        },
+      }
+    end,
+  },
+  {
     "williamboman/mason.nvim",
     keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
     opts = {
       ensure_installed = {
         "stylua",
         "shfmt",
-        "prettierd",
-        "js-debug-adapter",
-        -- "chrome-debug-adapter",
-        -- "js-debug-adapter",
       },
     },
     config = function(_, opts)
@@ -213,103 +209,11 @@ return {
           end
         end
       end
-      require("dap-vscode-js").setup({
-        node_path = "node",
-        debugger_path = DEBUGGER_PATH,
-        -- debugger_cmd = { "js-debug-adapter" },
-        adapters = { "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }, -- which adapters to register in nvim-dap
-      })
-      local dap = require("dap")
-      if not dap.adapters["pwa-node"] then
-        require("dap").adapters["pwa-node"] = {
-          type = "server",
-          host = "localhost",
-          port = "${port}",
-          executable = {
-            command = "node",
-            -- 💀 Make sure to update this path to point to your installation
-            args = {
-              require("mason-registry").get_package("js-debug-adapter"):get_install_path()
-                .. "/js-debug/src/dapDebugServer.js",
-              "${port}",
-            },
-          },
-        }
-      end
-      for _, language in ipairs({ "javascriptreact", "typescriptreact" }) do
-        if not dap.configurations[language] then
-          dap.configurations[language] = {
-            {
-              type = "pwa-chrome",
-              name = "Attach - Remote Debugging",
-              request = "attach",
-              program = "${file}",
-              cwd = vim.fn.getcwd(),
-              sourceMaps = true,
-              protocol = "inspector",
-              port = 9222,
-              webRoot = "${workspaceFolder}",
-            },
-            {
-              type = "pwa-chrome",
-              name = "Launch Chrome",
-              request = "launch",
-              url = "http://localhost:3000",
-            },
-          }
-        end
-      end
-      for _, language in ipairs({ "typescript", "javascript" }) do
-        if not dap.configurations[language] then
-          dap.configurations[language] = {
-            {
-              type = "pwa-node",
-              request = "launch",
-              name = "Launch file",
-              program = "${file}",
-              cwd = "${workspaceFolder}",
-            },
-            {
-              type = "pwa-node",
-              request = "attach",
-              name = "Attach",
-              processId = require("dap.utils").pick_process,
-              cwd = "${workspaceFolder}",
-            },
-          }
-        end
-      end
       if mr.refresh then
         mr.refresh(ensure_installed)
       else
         ensure_installed()
       end
     end,
-  },
-  {
-    "jose-elias-alvarez/null-ls.nvim",
-    event = "BufReadPre",
-    dependencies = { "mason.nvim" },
-    config = function()
-      local nls = require("null-ls")
-      nls.setup({
-        sources = {
-          nls.builtins.formatting.stylua,
-          nls.builtins.diagnostics.ruff.with({ extra_args = { "--max-line-length=180" } }),
-          nls.builtins.formatting.prettierd,
-          require("typescript.extensions.null-ls.code-actions"),
-        },
-      })
-    end,
-  },
-  {
-    "utilyre/barbecue.nvim",
-    event = "VeryLazy",
-    dependencies = {
-      "neovim/nvim-lspconfig",
-      "SmiteshP/nvim-navic",
-      "nvim-tree/nvim-web-devicons",
-    },
-    config = true,
   },
 }
