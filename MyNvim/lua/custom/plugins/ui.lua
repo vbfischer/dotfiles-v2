@@ -135,23 +135,29 @@ return {
     "goolord/alpha-nvim",
     event = "VimEnter",
     opts = function()
+      math.randomseed(os.time())
+
+      local function pick_color()
+        local colors = { "String", "Identifier", "Keyword", "Number" }
+        return colors[math.random(#colors)]
+      end
+
       local dashboard = require("alpha.themes.dashboard")
       local logo = [[
-      
-         ██    ██  ██████ ██████  ██      ██    ██ ███████ 
-         ██    ██ ██      ██   ██ ██      ██    ██ ██      
-         ██    ██ ██      ██████  ██      ██    ██ ███████ 
-          ██  ██  ██      ██      ██      ██    ██      ██ 
-           ████    ██████ ██      ███████  ██████  ███████ 
-                                                           
-                                                           
-                   ██     ██ ███████ ██████                          
-                   ██     ██ ██      ██   ██                         
-                   ██  █  ██ █████   ██████                          
-                   ██ ███ ██ ██      ██   ██                         
-                    ███ ███  ███████ ██████                          
-                                                                     
-               ]]
+██╗   ██╗ ██████╗██████╗ ██╗     ██╗   ██╗███████╗
+██║   ██║██╔════╝██╔══██╗██║     ██║   ██║██╔════╝
+██║   ██║██║     ██████╔╝██║     ██║   ██║███████╗
+╚██╗ ██╔╝██║     ██╔═══╝ ██║     ██║   ██║╚════██║
+ ╚████╔╝ ╚██████╗██║     ███████╗╚██████╔╝███████║
+  ╚═══╝   ╚═════╝╚═╝     ╚══════╝ ╚═════╝ ╚══════╝
+ 
+            ██╗    ██╗███████╗██████╗
+            ██║    ██║██╔════╝██╔══██╗
+            ██║ █╗ ██║█████╗  ██████╔╝
+            ██║███╗██║██╔══╝  ██╔══██╗
+            ╚███╔███╔╝███████╗██████╔╝
+             ╚══╝╚══╝ ╚══════╝╚═════╝
+]]
 
       dashboard.section.header.val = vim.split(logo, "\n")
       dashboard.section.buttons.val = {
@@ -167,7 +173,7 @@ return {
         button.opts.hl = "AlphaButtons"
         button.opts.hl_shortcut = "AlphaShortcut"
       end
-      dashboard.section.header.opts.hl = "AlphaHeader"
+      dashboard.section.header.opts.hl = pick_color()
       dashboard.section.buttons.opts.hl = "AlphaButtons"
       dashboard.section.footer.opts.hl = "AlphaFooter"
       dashboard.opts.layout[1].val = 8
