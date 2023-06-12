@@ -104,3 +104,7 @@ else
 end
 map("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to Other Buffer" })
 map("n", "<leader>`", "<cmd>e #<cr>", { desc = "Switch to Other Buffer" })
+
+local default_opts = { noremap = true, silent = true }
+vim.api.nvim_set_keymap("i", "jk", "<ESC>", default_opts)
+vim.api.nvim_set_keymap("t", "jk", "<C-\\><C-n>", default_opts)
